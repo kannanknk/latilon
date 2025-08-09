@@ -6,35 +6,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        #map { height: 500px; width: 100%; }
+		html, body {
+		  height: 100%;
+		  margin: 0;
+		}
+        #map { height: 100%; width: 100%; }
     </style>
 </head>
 <body>
-<h3>Satellite Map with Dotted Path & Custom Markers</h3>
+<button id="findBtn" style="
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    padding: 6px 12px;
+    background: white;
+    border: 1px solid #ccc;
+    cursor: pointer;
+">
+    📍 Find Current Location
+</button>
 <div id="map"></div>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-    // Example coordinates (lat, lng, label)
     var locations = [
         [10.463762, 77.680056, "1"],  // current location
         [10.463762, 77.679556, "2"],
         [10.463962, 77.679556, "3"],
-        [10.463762, 77.679356, "4"]
+        [10.463762, 70.679356, "4"]
     ];
 
-    var currentLocation = "1"; // The one to be blue
+    var currentLocation = "1";
 
-    // Create map centered on 1
-    var map = L.map('map').setView([13.0827, 80.2707], 6);
+    var map = L.map('map');
 
-    // Satellite base layer
+    // Satellite layer
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles © Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and others',
-        maxZoom: 19
+        maxZoom: 18
     }).addTo(map);
 
-    // Custom blue marker for current location
     var blueIcon = new L.Icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
         shadowUrl: 'https://unpkg.com/leaflet/dist/images/marker-shadow.png',
@@ -44,24 +56,22 @@
         shadowSize: [41, 41]
     });
 
-    // Array to store lat/lng for polyline
     var latlngs = [];
+    var bounds = [];
 
-    // Add markers/circles
     locations.forEach(function(loc) {
         latlngs.push([loc[0], loc[1]]);
+        bounds.push([loc[0], loc[1]]);
 
         if (loc[2] === currentLocation) {
-            // Blue pin for current location
             L.marker([loc[0], loc[1]], { icon: blueIcon })
                 .addTo(map)
                 .bindPopup("<b>" + loc[2] + "</b>");
         } else {
-            // Circle marker with white border for others
             L.circleMarker([loc[0], loc[1]], {
                 radius: 8,
-                color: "white",       // border
-                weight: 2,            // border thickness
+                color: "white",
+                weight: 2,
                 fillColor: "gray",
                 fillOpacity: 0.9
             })
@@ -70,17 +80,23 @@
         }
     });
 
-    // Add dotted blue line connecting locations
     L.polyline(latlngs, {
         color: "blue",
         weight: 3,
         opacity: 0.7,
-        dashArray: "5, 10" // dotted line pattern
+        dashArray: "5, 10"
     }).addTo(map);
 
-    // Fit map to all markers
-    var bounds = L.latLngBounds(latlngs);
+    // Auto fit to show all markers, then zoom out slightly
     map.fitBounds(bounds);
+	
+	// find current location
+	var currLoc = locations.find(loc => loc[2] === currentLocation);
+
+    // Button click event
+    document.getElementById("findBtn").addEventListener("click", function () {
+        map.setView([currLoc[0], currLoc[1]], 18);
+    });
 </script>
 </body>
 </html>
