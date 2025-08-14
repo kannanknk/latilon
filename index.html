@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Leaflet Satellite Map - Connected Locations</title>
+    <title>LATILON</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -10,93 +10,169 @@
 		  height: 100%;
 		  margin: 0;
 		}
+		
         #map { height: 100%; width: 100%; }
+		
+		#dialogBox { 
+		position: absolute;
+		top: 10px;
+		right: 10px;
+		z-index: 1000;
+		padding: 6px 12px;
+		background: white;
+		border: 1px solid #ccc;
+		cursor: pointer; }
+		
+		#mapDialog {
+		display:none;
+		position:fixed;
+		top:50%;
+		left:50%;
+		transform:translate(-50%, -50%);
+		background:#e6f0ff;
+		padding:20px;
+		border-radius:10px;
+		box-shadow:0 4px 10px rgba(0,0,0,0.3);
+		z-index:9999;
+		}
     </style>
 </head>
 <body>
-<button id="findBtn" style="
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-    padding: 6px 12px;
-    background: white;
-    border: 1px solid #ccc;
-    cursor: pointer;
-">
-    📍 Find Current Location
-</button>
-<div id="map"></div>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-    var locations = [
-        [10.463762, 77.680056, "1"],  // current location
-        [10.463762, 77.679556, "2"],
-        [10.463962, 77.679556, "3"],
-        [10.463762, 70.679356, "4"]
-    ];
+	function showMapDialog() {
+	  document.getElementById('mapDialog').style.display = 'block';
+	}
+	function closeMapDialog() {
+	  document.getElementById('mapDialog').style.display = 'none';
+	}
+</script>
 
-    var currentLocation = "1";
+<div id="map"></div>
+<button id="dialogBox" onclick="showMapDialog()">]|[</button>
+<div id="mapDialog">
+  <h3>Select Map View</h3>
+  <div style="display:flex;gap:15px;justify-content:center;">
+    <!-- Street View -->
+    <button onclick="streetView()" style="background:#ffffff;border:2px solid #0066cc;border-radius:10px;padding:10px;width:70px;cursor:pointer;">
+      <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" width="32"><br>
+      <span style="font-size:12px;color:#003366;">Street</span>
+    </button>
+    
+    <!-- Satellite View -->
+    <button onclick="satelliteView()" style="background:#ffffff;border:2px solid #0066cc;border-radius:10px;padding:10px;width:70px;cursor:pointer;">
+      <img src="https://cdn-icons-png.flaticon.com/512/854/854878.png" width="32"><br>
+      <span style="font-size:12px;color:#003366;">Satellite</span>
+    </button>
+    
+    <!-- Transport View -->
+    <button onclick="transportView()" style="background:#ffffff;border:2px solid #0066cc;border-radius:10px;padding:10px;width:70px;cursor:pointer;">
+      <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" width="32"><br>
+      <span style="font-size:12px;color:#003366;">Transport</span>
+    </button>
+    
+    <!-- Location Names -->
+    <button onclick="namesView()" style="background:#ffffff;border:2px solid #0066cc;border-radius:10px;padding:10px;width:70px;cursor:pointer;">
+      <img src="https://cdn-icons-png.flaticon.com/512/535/535239.png" width="32"><br>
+      <span style="font-size:12px;color:#003366;">Names</span>
+    </button>
+  </div>
+  <button onclick="closeMapDialog()">Close</button>
+</div>
 
-    var map = L.map('map');
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
 
-    // Satellite layer
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles © Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and others',
-        maxZoom: 18
-    }).addTo(map);
-
-    var blueIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-        shadowUrl: 'https://unpkg.com/leaflet/dist/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    });
-
-    var latlngs = [];
-    var bounds = [];
-
-    locations.forEach(function(loc) {
-        latlngs.push([loc[0], loc[1]]);
-        bounds.push([loc[0], loc[1]]);
-
-        if (loc[2] === currentLocation) {
-            L.marker([loc[0], loc[1]], { icon: blueIcon })
-                .addTo(map)
-                .bindPopup("<b>" + loc[2] + "</b>");
-        } else {
-            L.circleMarker([loc[0], loc[1]], {
-                radius: 8,
-                color: "white",
-                weight: 2,
-                fillColor: "gray",
-                fillOpacity: 0.9
-            })
-            .addTo(map)
-            .bindPopup("<b>" + loc[2] + "</b>");
-        }
-    });
-
-    L.polyline(latlngs, {
-        color: "blue",
-        weight: 3,
-        opacity: 0.7,
-        dashArray: "5, 10"
-    }).addTo(map);
-
-    // Auto fit to show all markers, then zoom out slightly
-    map.fitBounds(bounds);
+<script>
+	var map = L.map('map');
 	
-	// find current location
-	var currLoc = locations.find(loc => loc[2] === currentLocation);
+	function getUserLocation() {
+		var locations = [
+			[10.463762, 77.680056],
+			[10.463762, 77.679556],
+			[10.463962, 77.679556],
+			[10.463762, 70.679356]
+		];
+		return locations;
+	}
+	
+	function getUserCurrentLocation() {
+		return getUserLocation()[0];
+	}
+	
+	function setMapView(view = 0) {
+		var mapView = undefined;
+		if(view==1) {
+			mapView = L.tileLayer(
+			  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+			  { attribution: 'Latilon' }
+			);
+		} else if(view==2) {
+			mapView = L.tileLayer(
+			  'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',
+			  { attribution: 'Latilon', pane: 'overlayPane' }
+			);
+		} else if(view==3) {
+			mapView = L.tileLayer(
+			  'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+			  { attribution: 'Latilon', pane: 'overlayPane' }
+			);
+		} else {
+			mapView = L.tileLayer(
+			  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+			  { attribution: 'Latilon' }
+			);
+		}
+		return mapView;
+	}
+	
+	map.setView(getUserCurrentLocation());
+	map.fitBounds([getUserCurrentLocation()]);
 
-    // Button click event
-    document.getElementById("findBtn").addEventListener("click", function () {
-        map.setView([currLoc[0], currLoc[1]], 18);
-    });
+    // Map Views
+	var viewList = [];
+	viewList[0] = setMapView(0);
+	viewList[1] = setMapView(1);
+	viewList[2] = setMapView(2);
+	viewList[3] = setMapView(3);
+	
+	transportViewBtnState = true;
+	namesViewBtnState = true;
+	
+	function streetView() {
+		viewList[1].remove(map);
+		viewList[0].addTo(map);
+	}
+	function satelliteView() {
+		viewList[0].remove(map);
+		viewList[1].addTo(map);
+	}
+	function transportView() {
+		if (transportViewBtnState) {
+			viewList[2].addTo(map);
+		} else {
+			viewList[2].remove(map);
+		}
+		transportViewBtnState = !transportViewBtnState;
+	}
+	function namesView() {
+		if (namesViewBtnState) {
+			viewList[3].addTo(map);
+		} else {
+			viewList[3].remove(map);
+		}
+		namesViewBtnState = !namesViewBtnState;
+	}
+	
+	var marker = L.marker([10.463762, 77.680056]).addTo(map);
+	
+	var circle = L.circle([10.463762, 77.680056], {
+		color: 'red',
+		fillColor: '#f03',
+		fillOpacity: 0.5,
+		radius: 13
+	}).addTo(map);
 </script>
 </body>
 </html>
