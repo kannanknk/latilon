@@ -13,7 +13,20 @@
 		
         #map { height: 100%; width: 100%; }
 		
-		#dialogBox { 
+		/*Dialog box btn*/
+		#locationBox {
+		position: absolute;
+		top: 50px;
+		right: 10px;
+		z-index: 1000;
+		padding: 6px 12px;
+		background: white;
+		border: 1px solid #ccc;
+		border-radius: 13px;
+		cursor: pointer;
+		}
+		
+		#viewBox {
 		position: absolute;
 		top: 10px;
 		right: 10px;
@@ -21,88 +34,194 @@
 		padding: 6px 12px;
 		background: white;
 		border: 1px solid #ccc;
-		cursor: pointer; }
+		border-radius: 13px;
+		cursor: pointer;
+		}
 		
-		#mapDialog {
-		display:none;
-		position:fixed;
-		top:50%;
-		left:50%;
-		transform:translate(-50%, -50%);
-		background:#e6f0ff;
-		padding:20px;
-		border-radius:10px;
-		box-shadow:0 4px 10px rgba(0,0,0,0.3);
-		z-index:9999;
+		/* Overlay background */
+		#dialogOverlayView, #dialogOverlayLocation {
+		display: none;
+		position: fixed;
+		top: 0; left: 0; right: 0; bottom: 0;
+		background: rgba(0,0,0,0.5);
+		z-index: 999;
+		justify-content: center;
+		align-items: center;
+		}
+
+		/* Dialog box */
+		#mapDialog, #locationDialog {
+		background: white;
+		border-radius: 15px;
+		padding: 20px;
+		max-width: 400px;
+		width: 90%;
+		box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+		margin: 15px;
+		}
+
+		/* Button grid */
+		.map-btn-container, .location-btn-container {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+		gap: 15px;
+		justify-items: center;
+		}
+		
+		/* Icon buttons */
+		.map-btn, .location-btn {
+		background: #f8faff;
+		border: 1px solid #8866cc;
+		border-radius: 12px;
+		padding-top: 10px;
+		padding-bottom: 10px;
+		text-align: center;
+		cursor: pointer;
+		transition: 0.2s ease;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		width: 80px;
+		}
+		.map-btn:hover {
+		background: #e6f2ff;
+		transform: scale(1.05);
+		}
+		.map-btn img {
+		width: 36px;
+		height: 36px;
+		margin-bottom: 5px;
+		}
+		.map-btn span {
+		font-size: 12px;
+		color: #003366;
+		font-weight: 600;
 		}
     </style>
 </head>
 <body>
 
-<script>
-	function showMapDialog() {
-	  document.getElementById('mapDialog').style.display = 'block';
-	}
-	function closeMapDialog() {
-	  document.getElementById('mapDialog').style.display = 'none';
-	}
-</script>
-
 <div id="map"></div>
-<button id="dialogBox" onclick="showMapDialog()">]|[</button>
-<div id="mapDialog">
-  <h3>Select Map View</h3>
-  <div style="display:flex;gap:15px;justify-content:center;">
-    <!-- Street View -->
-    <button onclick="streetView()" style="background:#ffffff;border:2px solid #0066cc;border-radius:10px;padding:10px;width:70px;cursor:pointer;">
-      <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" width="32"><br>
-      <span style="font-size:12px;color:#003366;">Street</span>
-    </button>
-    
-    <!-- Satellite View -->
-    <button onclick="satelliteView()" style="background:#ffffff;border:2px solid #0066cc;border-radius:10px;padding:10px;width:70px;cursor:pointer;">
-      <img src="https://cdn-icons-png.flaticon.com/512/854/854878.png" width="32"><br>
-      <span style="font-size:12px;color:#003366;">Satellite</span>
-    </button>
-    
-    <!-- Transport View -->
-    <button onclick="transportView()" style="background:#ffffff;border:2px solid #0066cc;border-radius:10px;padding:10px;width:70px;cursor:pointer;">
-      <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" width="32"><br>
-      <span style="font-size:12px;color:#003366;">Transport</span>
-    </button>
-    
-    <!-- Location Names -->
-    <button onclick="namesView()" style="background:#ffffff;border:2px solid #0066cc;border-radius:10px;padding:10px;width:70px;cursor:pointer;">
-      <img src="https://cdn-icons-png.flaticon.com/512/535/535239.png" width="32"><br>
-      <span style="font-size:12px;color:#003366;">Names</span>
-    </button>
+<button id="viewBox" onclick="showMapDialog()">]|[</button>
+<button id="locationBox" onclick="showLocationDialog()">[|]</button>
+<div id="dialogOverlayView">
+  <div id="mapDialog">
+    <div class="map-btn-container">
+      <!-- Street View -->
+      <div class="map-btn" onclick="streetView()">
+        <img src="https://cdn-icons-png.flaticon.com/512/854/854905.png">
+        <span>Street</span>
+      </div>
+      
+      <!-- Satellite View -->
+      <div class="map-btn" onclick="satelliteView()">
+        <img src="https://cdn-icons-png.flaticon.com/512/854/854882.png">
+        <span>Satellite</span>
+      </div>
+      
+      <!-- Transport View -->
+      <div class="map-btn" onclick="transportView()">
+        <img src="https://cdn-icons-png.flaticon.com/512/3448/3448440.png">
+        <span>Transport</span>
+      </div>
+      
+      <!-- Location Names -->
+      <div class="map-btn" onclick="namesView()">
+        <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png">
+        <span>Names</span>
+      </div>
+    </div>
   </div>
-  <button onclick="closeMapDialog()">Close</button>
 </div>
-
+<div id="dialogOverlayLocation">
+  <div id="locationDialog">
+    <div class="location-btn-container">
+      <!-- Current Location -->
+      <div class="location-btn" onclick="getUserCurrentLocation()">
+        <span>Current Location</span>
+      </div>
+      
+      <!-- Live Location -->
+      <div class="location-btn" onclick="getUserLiveLocation()">
+        <span>Live Location</span>
+      </div>
+      
+      <!-- Recorded Location -->
+      <div class="location-btn" onclick="getUserRecordedLocation()">
+        <span>Recorded Location</span>
+      </div>
+    </div>
+  </div>
+</div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
+	 
+<script>
+async function fetchData(url, params = {}) {
+  try {
+    // Build query string from params object
+    const query = new URLSearchParams(params).toString();
+    const fullUrl = query ? `${url}?${query}` : url;
+
+    // Fetch with GET method
+    const response = await fetch(fullUrl, {
+      method: "GET"
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    // Parse JSON (or use text() if response is plain text)
+    const data = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error("Fetch error:", error);
+    return null;
+  }
+}
+</script>
+
+<script>
+	function showMapDialog() {
+	  document.getElementById("viewBox").style.display = "none";
+	  document.getElementById("locationBox").style.display = "none";
+	  document.getElementById("dialogOverlayView").style.display = "flex";
+	}
+	
+	function showLocationDialog() {
+	  document.getElementById("viewBox").style.display = "none";
+	  document.getElementById("locationBox").style.display = "none";
+	  document.getElementById("dialogOverlayLocation").style.display = "flex";
+	}
+	
+	document.getElementById("dialogOverlayView").addEventListener("click", function(e) {
+		if (e.target.id === "dialogOverlayView") {
+			this.style.display = "none";
+			document.getElementById("viewBox").style.display = "block";
+			document.getElementById("locationBox").style.display = "block";
+		}
+	});
+	
+	document.getElementById("dialogOverlayLocation").addEventListener("click", function(e) {
+		if (e.target.id === "dialogOverlayLocation") {
+			this.style.display = "none";
+			document.getElementById("viewBox").style.display = "block";
+			document.getElementById("locationBox").style.display = "block";
+		}
+	});
+</script>
 
 <script>
 	var map = L.map('map');
-	
-	function getUserLocation() {
-		var locations = [
-			[10.463762, 77.680056],
-			[10.463762, 77.679556],
-			[10.463962, 77.679556],
-			[10.463762, 70.679356]
-		];
-		return locations;
-	}
-	
-	function getUserCurrentLocation() {
-		return getUserLocation()[0];
-	}
-	
+	var marked = undefined;
+
+    // Map Views
 	function setMapView(view = 0) {
-		var mapView = undefined;
+		let mapView = undefined;
 		if(view==1) {
 			mapView = L.tileLayer(
 			  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -127,28 +246,32 @@
 		return mapView;
 	}
 	
-	map.setView(getUserCurrentLocation());
-	map.fitBounds([getUserCurrentLocation()]);
-
-    // Map Views
 	var viewList = [];
-	viewList[0] = setMapView(0);
-	viewList[1] = setMapView(1);
-	viewList[2] = setMapView(2);
-	viewList[3] = setMapView(3);
+	let totalView = 4;
+	for(let view=0; view<totalView; view++) {
+		viewList[view] = setMapView(view);
+	}
 	
 	transportViewBtnState = true;
 	namesViewBtnState = true;
 	
+	function closeDialogOverlayView() {
+		document.getElementById("dialogOverlayView").style.display = "none";
+		document.getElementById("viewBox").style.display = "block";
+		document.getElementById("locationBox").style.display = "block";
+	}
 	function streetView() {
+		closeDialogOverlayView();
 		viewList[1].remove(map);
 		viewList[0].addTo(map);
 	}
 	function satelliteView() {
+		closeDialogOverlayView();
 		viewList[0].remove(map);
 		viewList[1].addTo(map);
 	}
 	function transportView() {
+		closeDialogOverlayView();
 		if (transportViewBtnState) {
 			viewList[2].addTo(map);
 		} else {
@@ -157,6 +280,7 @@
 		transportViewBtnState = !transportViewBtnState;
 	}
 	function namesView() {
+		closeDialogOverlayView();
 		if (namesViewBtnState) {
 			viewList[3].addTo(map);
 		} else {
@@ -164,15 +288,98 @@
 		}
 		namesViewBtnState = !namesViewBtnState;
 	}
+
+	// fetch location data
+	async function getData(setUserCurrentLocation=1) {
+		var locations = [];
+		await fetchData("https://api.thingspeak.com/channels/3036770/feeds.json", { api_key: "HIJ6YPWS3T4KBTHM" })
+		.then(data => {
+			//console.log("Fetched Data:", data);
+			data.feeds.map(
+				feed => {
+					locations.push([feed.entry_id, feed.created_at].concat(feed.field1.split('|')));
+				}
+			);
+			//console.log("Fetched Data:", locations);
+			
+			if(setUserCurrentLocation) {
+				let userCurrentLocationDetails = locations[locations.length-1];
+				if(userCurrentLocationDetails){
+					userCurrentLocation = [userCurrentLocationDetails[2], userCurrentLocationDetails[3]];
+					map.setView(userCurrentLocation);
+					map.fitBounds([userCurrentLocation]);
+					satelliteView();
+					marked = L.marker(userCurrentLocation).addTo(map);
+				}
+			}
+		});
+		
+		return locations;
+	}
 	
-	var marker = L.marker([10.463762, 77.680056]).addTo(map);
+	var locations = getData();
+	let timerId = undefined;
 	
-	var circle = L.circle([10.463762, 77.680056], {
-		color: 'red',
-		fillColor: '#f03',
-		fillOpacity: 0.5,
-		radius: 13
-	}).addTo(map);
+	function clearMarked() {
+		if(Array.isArray(marked)) {
+			marked.map(marker => marker.remove(map));
+		} else {
+			marked.remove(map);
+		}
+		document.getElementById("dialogOverlayLocation").style.display = "none";
+		document.getElementById("viewBox").style.display = "block";
+		document.getElementById("locationBox").style.display = "block";
+	}
+	
+	async function getUserCurrentLocation() {
+		if(timerId)	{clearInterval(timerId);}
+		clearMarked();
+		locations = await getData();
+	}
+	
+	async function setUserLiveLocation() {
+		locations = await getData();
+		//clearMarked();
+		console.log("running", locations);
+	}
+	
+	function getUserLiveLocation() {
+		getUserCurrentLocation();
+		timerId = setInterval(setUserLiveLocation, 15000);
+	}
+	
+	function setRecordedLocations(locations) {
+		locations.map((location, index) => {
+			userLocation = [location[2], location[3]];
+			let marker = undefined;
+			if(index == location.length-1) {	// Current Location
+				map.setView(userLocation);
+				map.fitBounds([userLocation]);
+				marker = L.circleMarker(userLocation);
+			} else {
+				marker = L.marker(userLocation);
+			}
+			marker.addTo(map);
+			marked.push(marker);
+		});
+	}
+	
+	function getUserRecordedLocation() {
+		if(timerId)	{clearInterval(timerId);}
+		clearMarked();
+		marked = [];
+		let userRecordedLocationDetails = locations;
+		if(userRecordedLocationDetails){
+			if(Array.isArray(userRecordedLocationDetails)) {
+				setRecordedLocations(locations);
+			} else {
+				userRecordedLocationDetails.then(locations => {
+					setRecordedLocations(locations);
+				});
+			}
+		}
+	}
+
 </script>
 </body>
 </html>
